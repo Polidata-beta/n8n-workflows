@@ -1,0 +1,40 @@
+{
+  "createdAt": "2025-07-26T17:06:14.025Z",
+  "updatedAt": "2025-07-26T17:10:30.000Z",
+  "id": "fBb2ByVyggQauZEU",
+  "name": "Polidata - Error Workflow",
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "047b416b-3f67-4369-bca3-2022acb1f789",
+      "name": "When clicking ‘Execute workflow’"
+    }
+  ],
+  "connections": {},
+  "settings": {
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner",
+    "errorWorkflow": "fBb2ByVyggQauZEU"
+  },
+  "staticData": null,
+  "meta": null,
+  "pinData": {},
+  "versionId": "385b8493-4db4-4484-8fc1-9a0267ac977e",
+  "triggerCount": 0,
+  "tags": [
+    {
+      "createdAt": "2025-07-26T16:26:52.365Z",
+      "updatedAt": "2025-07-26T16:26:52.365Z",
+      "id": "Excxv6eeiOFnhDRH",
+      "name": "polidata"
+    }
+  ]
+}
