@@ -1,0 +1,410 @@
+{
+  "createdAt": "2025-07-29T03:48:54.521Z",
+  "updatedAt": "2025-07-30T04:51:53.000Z",
+  "id": "D9XDgRjKiPrH7TMJ",
+  "name": "Polidata - Knowledge - FEC Store Finance Data",
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        64,
+        256
+      ],
+      "id": "62334ae4-838a-4351-9f33-04ddd7297380",
+      "name": "replace with scheduled time"
+    },
+    {
+      "parameters": {
+        "url": "https://api.open.fec.gov/v1/candidates",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "api_key",
+              "value": "w9DxuU3wdnfBu2UeKneQDfkU3pCBjIijGQ13XgkV"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        288,
+        144
+      ],
+      "id": "801ccd96-69ac-4248-85cd-e520a503612f",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "data",
+        "include": "allOtherFields",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        640,
+        192
+      ],
+      "id": "14ce2f6c-7ef0-474f-9eba-538f9685c6aa",
+      "name": "Split Out"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "9631f3d7-73b0-4311-915b-42d26e52a715",
+              "name": "data",
+              "value": "={{ $json.results }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        464,
+        320
+      ],
+      "id": "b17319c8-83b2-41ba-9795-df9120a72075",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "cycles",
+        "include": "allOtherFields",
+        "options": {
+          "destinationFieldName": "year"
+        }
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        976,
+        192
+      ],
+      "id": "7406ea60-7230-4b39-b8b1-3666d8d3716e",
+      "name": "Split Out1",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "jsCode": "const candidates = JSON.parse(items[0].json.data);\n\nreturn candidates.map(candidate => {\n  return {\n    json: candidate\n  };\n});\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        816,
+        112
+      ],
+      "id": "f0ab89b9-6152-4782-93d7-3e816ee3e597",
+      "name": "Parse JSON"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "e5ed2766-e71f-4453-b069-57d0f2111377",
+              "leftValue": "={{ $json.results[0].committee_id }}",
+              "rightValue": "^C\\d{8}$",
+              "operator": {
+                "type": "string",
+                "operation": "regex"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1440,
+        176
+      ],
+      "id": "02cd1b22-456e-40e5-83f4-4b2598f2eef5",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "url": "=https://api.open.fec.gov/v1/candidate/{{ $json.candidate_id }}/committees",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "api_key",
+              "value": "w9DxuU3wdnfBu2UeKneQDfkU3pCBjIijGQ13XgkV"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1136,
+        112
+      ],
+      "id": "b5115400-2591-4aac-bd6d-c33c3e6466e6",
+      "name": "HTTP Request1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "642ae699-3337-44df-81f1-b9353781d8db",
+              "name": "committee_id",
+              "value": "={{ $json.results[0].committee_id }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1296,
+        304
+      ],
+      "id": "b758b2aa-e648-4b27-aa65-3f5c2c36878f",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "url": "https://api.open.fec.gov/v1/schedules/schedule_a/",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "api_key",
+              "value": "w9DxuU3wdnfBu2UeKneQDfkU3pCBjIijGQ13XgkV"
+            },
+            {
+              "name": "committee_id",
+              "value": "={{ $json.committee_id }}"
+            },
+            {
+              "name": "two_year_transaction_period",
+              "value": "={{ $('Split Out1').item.json.year }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1648,
+        64
+      ],
+      "id": "2fe44336-f53f-470a-8518-f94dd0efdfe7",
+      "name": "HTTP Request2"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        1840,
+        176
+      ],
+      "id": "3ea69a21-eac7-46f3-8db7-4416bc66b6fe",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "name": "Replace Me",
+      "typeVersion": 1,
+      "position": [
+        2080,
+        464
+      ],
+      "id": "8f80c35c-c5aa-453a-93dc-e714ed9aa1a9"
+    }
+  ],
+  "connections": {
+    "replace with scheduled time": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Split Out",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out": {
+      "main": [
+        [
+          {
+            "node": "Parse JSON",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse JSON": {
+      "main": [
+        [
+          {
+            "node": "Split Out1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out1": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request1": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request2": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Replace Me",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Replace Me": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner",
+    "errorWorkflow": "fBb2ByVyggQauZEU"
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "pinData": {},
+  "versionId": "17ba4a24-f1eb-4965-a0f8-bc6ce9d218bc",
+  "triggerCount": 0,
+  "tags": [
+    {
+      "createdAt": "2025-07-26T16:26:52.365Z",
+      "updatedAt": "2025-07-26T16:26:52.365Z",
+      "id": "Excxv6eeiOFnhDRH",
+      "name": "polidata"
+    },
+    {
+      "createdAt": "2025-07-30T04:51:52.768Z",
+      "updatedAt": "2025-07-30T04:51:52.768Z",
+      "id": "YGJjCXaFcG0AkCW7",
+      "name": "v2"
+    }
+  ]
+}
