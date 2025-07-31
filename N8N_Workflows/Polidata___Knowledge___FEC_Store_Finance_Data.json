@@ -1,6 +1,6 @@
 {
   "createdAt": "2025-07-29T03:48:54.521Z",
-  "updatedAt": "2025-07-30T04:51:53.000Z",
+  "updatedAt": "2025-07-31T11:41:12.000Z",
   "id": "D9XDgRjKiPrH7TMJ",
   "name": "Polidata - Knowledge - FEC Store Finance Data",
   "active": false,
@@ -12,10 +12,10 @@
       "typeVersion": 1,
       "position": [
         64,
-        256
+        128
       ],
-      "id": "62334ae4-838a-4351-9f33-04ddd7297380",
-      "name": "replace with scheduled time"
+      "id": "72a76497-41e4-40b2-9760-51f246c843d5",
+      "name": "When clicking ‘Execute workflow’"
     },
     {
       "parameters": {
@@ -25,7 +25,23 @@
           "parameters": [
             {
               "name": "api_key",
-              "value": "w9DxuU3wdnfBu2UeKneQDfkU3pCBjIijGQ13XgkV"
+              "value": "gaBsYLfJMldfRD11oZY1vcEWLBePGlfCFTQ8qyVK"
+            },
+            {
+              "name": "per_page",
+              "value": "1"
+            },
+            {
+              "name": "sort_hide_null",
+              "value": "false"
+            },
+            {
+              "name": "sort_null_only",
+              "value": "false"
+            },
+            {
+              "name": "page",
+              "value": "={{ $item(0).json.page }}"
             }
           ]
         },
@@ -34,114 +50,50 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        288,
-        144
+        736,
+        128
       ],
-      "id": "801ccd96-69ac-4248-85cd-e520a503612f",
-      "name": "HTTP Request"
+      "id": "51e88c1a-a956-4d18-aebc-70b88e14cce5",
+      "name": "Fetch All Candidates (Paginated)"
     },
     {
       "parameters": {
-        "fieldToSplitOut": "data",
-        "include": "allOtherFields",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.splitOut",
-      "typeVersion": 1,
-      "position": [
-        640,
-        192
-      ],
-      "id": "14ce2f6c-7ef0-474f-9eba-538f9685c6aa",
-      "name": "Split Out"
-    },
-    {
-      "parameters": {
-        "assignments": {
-          "assignments": [
-            {
-              "id": "9631f3d7-73b0-4311-915b-42d26e52a715",
-              "name": "data",
-              "value": "={{ $json.results }}",
-              "type": "string"
-            }
-          ]
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.4,
-      "position": [
-        464,
-        320
-      ],
-      "id": "b17319c8-83b2-41ba-9795-df9120a72075",
-      "name": "Edit Fields"
-    },
-    {
-      "parameters": {
-        "fieldToSplitOut": "cycles",
-        "include": "allOtherFields",
-        "options": {
-          "destinationFieldName": "year"
-        }
-      },
-      "type": "n8n-nodes-base.splitOut",
-      "typeVersion": 1,
-      "position": [
-        976,
-        192
-      ],
-      "id": "7406ea60-7230-4b39-b8b1-3666d8d3716e",
-      "name": "Split Out1",
-      "alwaysOutputData": false
-    },
-    {
-      "parameters": {
-        "jsCode": "const candidates = JSON.parse(items[0].json.data);\n\nreturn candidates.map(candidate => {\n  return {\n    json: candidate\n  };\n});\n"
+        "jsCode": "return Array.from({ length: 20 }, (_, i) => ({\n  json: { page: i + 1 }\n}));\n// You can adjust the 100 if more pages exist"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        816,
-        112
+        288,
+        128
       ],
-      "id": "f0ab89b9-6152-4782-93d7-3e816ee3e597",
-      "name": "Parse JSON"
+      "id": "e966fa1b-8031-4b21-bdcb-122498da7632",
+      "name": "Init Pagination"
     },
     {
       "parameters": {
-        "conditions": {
-          "options": {
-            "caseSensitive": true,
-            "leftValue": "",
-            "typeValidation": "loose",
-            "version": 2
-          },
-          "conditions": [
-            {
-              "id": "e5ed2766-e71f-4453-b069-57d0f2111377",
-              "leftValue": "={{ $json.results[0].committee_id }}",
-              "rightValue": "^C\\d{8}$",
-              "operator": {
-                "type": "string",
-                "operation": "regex"
-              }
-            }
-          ],
-          "combinator": "and"
-        },
-        "looseTypeValidation": true,
         "options": {}
       },
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2.2,
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
       "position": [
-        1440,
-        176
+        512,
+        128
       ],
-      "id": "02cd1b22-456e-40e5-83f4-4b2598f2eef5",
-      "name": "If"
+      "id": "c8a4160e-59ab-4c30-995d-2b7c790ccd05",
+      "name": "Split In Batches"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Handle each page's results\nreturn items.flatMap(item => {\n  return item.json.results.map(candidate => ({\n    json: candidate\n  }));\n});\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        960,
+        128
+      ],
+      "id": "3bee280d-5601-4755-8b31-26f670364fae",
+      "name": "Flatten Candidates"
     },
     {
       "parameters": {
@@ -151,7 +103,7 @@
           "parameters": [
             {
               "name": "api_key",
-              "value": "w9DxuU3wdnfBu2UeKneQDfkU3pCBjIijGQ13XgkV"
+              "value": "gaBsYLfJMldfRD11oZY1vcEWLBePGlfCFTQ8qyVK"
             }
           ]
         },
@@ -160,18 +112,18 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        1136,
-        112
+        1632,
+        128
       ],
-      "id": "b5115400-2591-4aac-bd6d-c33c3e6466e6",
-      "name": "HTTP Request1"
+      "id": "4448e8c3-7d08-4524-9447-7b85855f5e07",
+      "name": "Fetch Candidate Committees"
     },
     {
       "parameters": {
         "assignments": {
           "assignments": [
             {
-              "id": "642ae699-3337-44df-81f1-b9353781d8db",
+              "id": "8ee53094-35b4-4144-b4e7-2fc80cec8684",
               "name": "committee_id",
               "value": "={{ $json.results[0].committee_id }}",
               "type": "string"
@@ -184,21 +136,55 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        1296,
-        304
+        1856,
+        128
       ],
-      "id": "b758b2aa-e648-4b27-aa65-3f5c2c36878f",
-      "name": "Edit Fields1"
+      "id": "37b07376-bc6d-47fd-bc22-ed0704f50eb4",
+      "name": "Set Commitee ID"
     },
     {
       "parameters": {
-        "url": "https://api.open.fec.gov/v1/schedules/schedule_a/",
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "20f02ef5-d0a7-44c5-bde5-754d95f66d83",
+              "leftValue": "={{ $json.committee_id }}",
+              "rightValue": "=^C\\d{8}$",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        2304,
+        -32
+      ],
+      "id": "1d89d8a4-b32e-4a0b-b783-5160ae5e68c0",
+      "name": "Check Valid Committee ID"
+    },
+    {
+      "parameters": {
+        "url": "https://api.open.fec.gov/v1/schedules/schedule_a/\n",
         "sendQuery": true,
         "queryParameters": {
           "parameters": [
             {
               "name": "api_key",
-              "value": "w9DxuU3wdnfBu2UeKneQDfkU3pCBjIijGQ13XgkV"
+              "value": "gaBsYLfJMldfRD11oZY1vcEWLBePGlfCFTQ8qyVK"
             },
             {
               "name": "committee_id",
@@ -206,7 +192,11 @@
             },
             {
               "name": "two_year_transaction_period",
-              "value": "={{ $('Split Out1').item.json.year }}"
+              "value": "={{ $('Split Cycles').item.json.cycle }}"
+            },
+            {
+              "name": "per_page",
+              "value": "100"
             }
           ]
         },
@@ -215,11 +205,59 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        1648,
-        64
+        2752,
+        -96
       ],
-      "id": "2fe44336-f53f-470a-8518-f94dd0efdfe7",
-      "name": "HTTP Request2"
+      "id": "6679799f-1105-4849-aeac-97c00ea6f1f9",
+      "name": "Fetch Contributions"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        2976,
+        -32
+      ],
+      "id": "dbc70ecf-924b-4ccd-a066-284f2917043d",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "cycles",
+        "include": "allOtherFields",
+        "options": {
+          "destinationFieldName": "cycle"
+        }
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        1408,
+        128
+      ],
+      "id": "062abf1f-d28e-4e33-92dd-fecdffd15f8c",
+      "name": "Split Cycles"
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={\n  \"committee_id\": \"{{ $json.committee_id }}\",\n  \"cycle\": \"{{ $('Split Cycles').item.json.cycle }}\"\n}\n",
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2528,
+        -96
+      ],
+      "id": "7c54c7c1-736a-4f89-aa4b-1edd7b66c7c8",
+      "name": "Edit Fields"
     },
     {
       "parameters": {
@@ -228,41 +266,354 @@
       "type": "n8n-nodes-base.splitInBatches",
       "typeVersion": 3,
       "position": [
-        1840,
-        176
+        3200,
+        -32
       ],
-      "id": "3ea69a21-eac7-46f3-8db7-4416bc66b6fe",
+      "id": "9f481900-efc0-45f0-b222-1a22e863def4",
       "name": "Loop Over Items"
     },
     {
-      "parameters": {},
-      "type": "n8n-nodes-base.noOp",
-      "name": "Replace Me",
+      "parameters": {
+        "tableId": "fec_candidate_data",
+        "dataToSend": "autoMapInputData"
+      },
+      "type": "n8n-nodes-base.supabase",
       "typeVersion": 1,
       "position": [
-        2080,
-        464
+        3648,
+        -32
       ],
-      "id": "8f80c35c-c5aa-453a-93dc-e714ed9aa1a9"
+      "id": "15deacc1-1e02-4767-9f5e-0e77799d25bf",
+      "name": "Create a row",
+      "credentials": {
+        "supabaseApi": {
+          "id": "3TOK5KoZ2qj9eoDZ",
+          "name": "Polidata Supabse"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "68c11b6c-c5ee-4745-b750-9e3d2cf6bd48",
+              "name": "affiliated_committee_name",
+              "value": "={{ $json.results[0].affiliated_committee_name }}",
+              "type": "string"
+            },
+            {
+              "id": "b83b538b-ddfe-4713-9d00-6c3145f22dca",
+              "name": "candidate_ids",
+              "value": "={{ $json.results[0].candidate_ids }}",
+              "type": "array"
+            },
+            {
+              "id": "b885a764-06db-48bd-8687-94f9635443d6",
+              "name": "city",
+              "value": "={{ $json.results[0].city }}",
+              "type": "string"
+            },
+            {
+              "id": "31fcc7cb-7756-4850-94e4-2f17083695db",
+              "name": "committee_type",
+              "value": "={{ $json.results[0].committee_type }}",
+              "type": "string"
+            },
+            {
+              "id": "aabce3d9-aab5-40bd-be33-a9b6f80b9f37",
+              "name": "committee_type_full",
+              "value": "={{ $json.results[0].committee_type_full }}",
+              "type": "string"
+            },
+            {
+              "id": "0ba8e396-74dd-46a7-ab9c-554045a9a8d5",
+              "name": "custodian_city",
+              "value": "={{ $json.results[0].custodian_city }}",
+              "type": "string"
+            },
+            {
+              "id": "99a9d75c-45f6-483f-8295-e0ef6fc5bb67",
+              "name": "custodian_name_full",
+              "value": "={{ $json.results[0].custodian_name_full }}",
+              "type": "string"
+            },
+            {
+              "id": "b741ac2a-f281-4e50-8988-b82a81d03002",
+              "name": "custodian_name_title",
+              "value": "={{ $json.results[0].custodian_name_title }}",
+              "type": "string"
+            },
+            {
+              "id": "b1ca81cc-1c30-4b46-ae00-582c7fb6788a",
+              "name": "custodian_phone",
+              "value": "={{ $json.results[0].custodian_phone }}",
+              "type": "string"
+            },
+            {
+              "id": "23b07c39-6768-4ced-bf92-a7e13884fbbd",
+              "name": "custodian_state",
+              "value": "={{ $json.results[0].custodian_state }}",
+              "type": "string"
+            },
+            {
+              "id": "a096e787-6527-4065-8edc-6f35351df048",
+              "name": "custodian_zip",
+              "value": "={{ $json.results[0].custodian_zip }}",
+              "type": "string"
+            },
+            {
+              "id": "4a70e96b-2079-4d7b-ba56-f1b2abf1aa23",
+              "name": "cycles",
+              "value": "={{ $json.results[0].cycles }}",
+              "type": "array"
+            },
+            {
+              "id": "fe70eb57-5e02-4408-afca-827164aac3ef",
+              "name": "designation",
+              "value": "={{ $json.results[0].designation }}",
+              "type": "string"
+            },
+            {
+              "id": "63522f2c-9c09-4a41-bd09-10aa5641bd80",
+              "name": "designation_full",
+              "value": "={{ $json.results[0].designation_full }}",
+              "type": "string"
+            },
+            {
+              "id": "1e132e11-8589-4159-a25b-d3d35b6bef0f",
+              "name": "email",
+              "value": "={{ $json.results[0].email }}",
+              "type": "string"
+            },
+            {
+              "id": "679db9b8-43dc-404b-b71e-83f3e62f8eef",
+              "name": "filing_frequency",
+              "value": "={{ $json.results[0].filing_frequency }}",
+              "type": "string"
+            },
+            {
+              "id": "61ddcef1-4ab7-4aee-ac3c-ce11044cdee3",
+              "name": "first_file_date",
+              "value": "={{ $json.results[0].first_file_date }}",
+              "type": "string"
+            },
+            {
+              "id": "2c518e97-f08f-4cb7-85db-691582a84f55",
+              "name": "last_file_date",
+              "value": "={{ $json.results[0].last_file_date }}",
+              "type": "string"
+            },
+            {
+              "id": "3291ba98-aa9a-43d3-8995-a3d1e5b4dead",
+              "name": "leadership_pac",
+              "value": "={{ $json.results[0].leadership_pac }}",
+              "type": "string"
+            },
+            {
+              "id": "951be186-dc84-4353-aba7-7f66ca6baca4",
+              "name": "lobbyist_registrant_pac",
+              "value": "={{ $json.results[0].lobbyist_registrant_pac }}",
+              "type": "string"
+            },
+            {
+              "id": "97733b53-30a6-4b7b-b28a-ba374022d80a",
+              "name": "name",
+              "value": "={{ $json.results[0].name }}",
+              "type": "string"
+            },
+            {
+              "id": "888c64a1-2dbc-488b-8697-07a086ef718f",
+              "name": "organization_type",
+              "value": "={{ $json.results[0].organization_type }}",
+              "type": "string"
+            },
+            {
+              "id": "e269ea43-8cff-4761-a5b2-6e1b853c74ff",
+              "name": "organization_type_full",
+              "value": "={{ $json.results[0].organization_type_full }}",
+              "type": "string"
+            },
+            {
+              "id": "4ed17afc-2412-471e-bba5-c757191d2c04",
+              "name": "party",
+              "value": "={{ $json.results[0].party }}",
+              "type": "string"
+            },
+            {
+              "id": "f374c201-56ec-4f1e-a65f-ce0309fce05b",
+              "name": "party_full",
+              "value": "={{ $json.results[0].party_full }}",
+              "type": "string"
+            },
+            {
+              "id": "534e47b0-0c28-43c5-9c06-8675d4c60070",
+              "name": "party_type",
+              "value": "={{ $json.results[0].party_type }}",
+              "type": "string"
+            },
+            {
+              "id": "c54fe01e-8f08-49b2-8c4c-94f24cc33db7",
+              "name": "sponsor_candidate_ids",
+              "value": "={{ $json.results[0].sponsor_candidate_ids }}",
+              "type": "string"
+            },
+            {
+              "id": "0ca9a067-897d-48bb-8437-50e49792d8c9",
+              "name": "state",
+              "value": "={{ $json.results[0].state }}",
+              "type": "string"
+            },
+            {
+              "id": "86443da3-aaeb-4044-97f4-187e13d63e9e",
+              "name": "website",
+              "value": "={{ $json.results[0].website }}",
+              "type": "string"
+            },
+            {
+              "id": "424008b3-359b-43cb-9108-7c0d30a03bbd",
+              "name": "committee_id",
+              "value": "={{ $json.committee_id }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        3424,
+        -32
+      ],
+      "id": "eaf34016-be8e-48d6-b337-c1121fe98c33",
+      "name": "Clean Data for Supabase"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        2016,
+        -32
+      ],
+      "id": "c573c36e-d3f5-43a0-8c9a-f85c4239d6af",
+      "name": "Split in Batches"
     }
   ],
   "connections": {
-    "replace with scheduled time": {
+    "When clicking ‘Execute workflow’": {
       "main": [
         [
           {
-            "node": "HTTP Request",
+            "node": "Init Pagination",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "HTTP Request": {
+    "Fetch All Candidates (Paginated)": {
       "main": [
         [
           {
+            "node": "Flatten Candidates",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Init Pagination": {
+      "main": [
+        [
+          {
+            "node": "Split In Batches",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split In Batches": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Fetch All Candidates (Paginated)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Flatten Candidates": {
+      "main": [
+        [
+          {
+            "node": "Split Cycles",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Candidate Committees": {
+      "main": [
+        [
+          {
+            "node": "Set Commitee ID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Commitee ID": {
+      "main": [
+        [
+          {
+            "node": "Split in Batches",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Valid Committee ID": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          },
+          {
             "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Contributions": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Cycles": {
+      "main": [
+        [
+          {
+            "node": "Fetch Candidate Committees",
             "type": "main",
             "index": 0
           }
@@ -273,80 +624,14 @@
       "main": [
         [
           {
-            "node": "Split Out",
+            "node": "Fetch Contributions",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Split Out": {
-      "main": [
-        [
-          {
-            "node": "Parse JSON",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Parse JSON": {
-      "main": [
-        [
-          {
-            "node": "Split Out1",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Split Out1": {
-      "main": [
-        [
-          {
-            "node": "HTTP Request1",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "HTTP Request1": {
-      "main": [
-        [
-          {
-            "node": "Edit Fields1",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Edit Fields1": {
-      "main": [
-        [
-          {
-            "node": "If",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "If": {
-      "main": [
-        [
-          {
-            "node": "HTTP Request2",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "HTTP Request2": {
+    "Merge": {
       "main": [
         [
           {
@@ -362,18 +647,35 @@
         [],
         [
           {
-            "node": "Replace Me",
+            "node": "Clean Data for Supabase",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Replace Me": {
+    "Create a row": {
+      "main": [
+        []
+      ]
+    },
+    "Clean Data for Supabase": {
       "main": [
         [
           {
-            "node": "Loop Over Items",
+            "node": "Create a row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split in Batches": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Check Valid Committee ID",
             "type": "main",
             "index": 0
           }
@@ -391,7 +693,7 @@
     "templateCredsSetupCompleted": true
   },
   "pinData": {},
-  "versionId": "17ba4a24-f1eb-4965-a0f8-bc6ce9d218bc",
+  "versionId": "7bd07407-3463-4f80-96a1-96c6db98418b",
   "triggerCount": 0,
   "tags": [
     {
